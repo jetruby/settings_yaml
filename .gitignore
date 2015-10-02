@@ -1,9 +1,46 @@
-/.bundle/
+# Local configuration
+/.env
+/.haml-lint.yml
+/.overcommit.yml
+/.reek
+/.rspec
+/.rubocop.yml
 /.yardoc
-/Gemfile.lock
-/_yardoc/
-/coverage/
-/doc/
-/pkg/
-/spec/reports/
+/coffeelint.json
+/config/database.yml
+/config/settings.local.yml
+
+# IDE projects
+/*.sublime-project
+/*.sublime-workspace
+/.gems_path
+/.gemtags
+/.idea
+/.project
+/.tags
+/.tags_sorted_by_file
+
+# Local Ruby environment
+/.bundle
+/.ruby-gemset
+/.ruby-version
+/.vagrant
+/Cheffile
+/Cheffile.lock
+/cookbooks
+/custom-cookbooks
+/Vagrantfile
+
+# Logfiles and tempfiles
+/.sass-cache
+/coverage
+/log
+/public/image_uploads
+/public/system
+/public/uploads
+/screenshot
+/spec/tmp/*
 /tmp/
+
+# Other
+.DS_Store
