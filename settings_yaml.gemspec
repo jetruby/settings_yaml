@@ -16,6 +16,11 @@ Gem::Specification.new do |spec|
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.require_paths = ['lib']
 
+  spec.add_runtime_dependency 'hashie', '~> 3.4'
+  spec.add_runtime_dependency 'activesupport-core-ext', '~> 4.0'
+
   spec.add_development_dependency 'bundler', '~> 1.9'
   spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'rspec', '~> 3.3'
+  spec.add_development_dependency 'test_construct', '~> 2.0'
 end

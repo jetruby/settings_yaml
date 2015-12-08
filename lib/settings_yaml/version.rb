@@ -1,3 +1,3 @@
-module SettingsYaml
+class SettingsYaml
   VERSION = '1.0.0'
 end
