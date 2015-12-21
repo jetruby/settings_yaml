@@ -5,12 +5,12 @@ require 'settings_yaml/version'
 # Reads settings from `config/settings.yml` and `config/settings.local.yml` files. Local file
 # overrides settings from main file.
 #
-# Settings are read from `global` section of YAML files and from a section named after current Rails
+# Settings are read from `application` section of YAML files and from a section named after current Rails
 # environment. Settings for current envinronment have bigger priority than settings from the
-# `global` section.
+# `application` section.
 #
 # @example `config/settings.yml`
-#   global:
+#   application:
 #     cloud:
 #       enabled: false
 #
@@ -19,40 +19,75 @@ require 'settings_yaml/version'
 #       enabled: true
 #
 # @example `config/initializers/00_settings.rb`
-#   require 'handsome_extensions/settings'
+#   require 'settings_yaml'
 #
-#   Settings = HandsomeExtensions::Settings.new.load!
+#   Settings = SettingsYaml.load!
 #
 # @example Accessing settings
 #   if Settings.cloud.enabled
 #     ...
 #   end
-class SettingsYaml < Hashie::Mash
-  # @return [Hasie::Mash]
-  def load!
-    self.deep_merge! settings_from_file('settings.yml')
-    self.deep_merge! settings_from_file('settings.local.yml')
-    self
-  end
+class SettingsYaml
 
-  private
+  APPLICATION_SETTINGS_ROOT_NAME = 'application'
 
-  # @param filename [String]
-  # @return [Hash]
-  def settings_from_file(filename)
-    file_path       = Rails.root.join 'config', filename
-    file_contents   = File.read(file_path)
-    parsed_file     = ERB.new(file_contents).result
-    loaded_settings = YAML.load(parsed_file)
+  class << self
+    # @param filename [String]
+    # @param environment [String]
+    # @return [Hasie::Mash]
+    def load!(filename='settings', environment=nil)
+      main_settings, local_settings  = FileParser.parse("#{filename}.yml"), FileParser.parse("#{filename}.local.yml")
 
-    {}.tap do |settings|
-      if loaded_settings
-        settings.deep_merge! loaded_settings['global'] || {}
-        settings.deep_merge! loaded_settings[Rails.env] || {}
+      result = Hashie::Mash.new
+      result.deep_merge!( application_settings(main_settings) )
+            .deep_merge!( environment_settings(main_settings, environment) )
+            .deep_merge!( application_settings(local_settings) )
+            .deep_merge!( environment_settings(local_settings, environment) )
+
+      result
+    end
+
+    private
+
+    # @param loaded_settings [Hash]
+    # @param environment [String]
+    # @return [Hash]
+    def environment_settings(loaded_settings, environment)
+      loaded_settings[(environment || default_env)] || {}
+    end
+
+    # @param loaded_settings [Hash]
+    # @return [Hash]
+    def application_settings(loaded_settings)
+      loaded_settings[APPLICATION_SETTINGS_ROOT_NAME] || {}
+    end
+
+    # @return [String]
+    def default_env
+      defined? Rails ? Rails.env : nil
+    end
+
+    class FileParser
+      class << self
+        # @param filename [String]
+        # @return [Hash]
+        def parse(filename)
+          file_contents   = File.read(file_path_by_name(filename))
+          parsed_file     = ERB.new(file_contents).result
+
+          YAML.load(parsed_file) || {}
+        rescue Errno::ENOENT # File not found error
+          {}
+        end
+
+        private
+
+        # @param filename [String]
+        # @return [FilePath]
+        def file_path_by_name(filename)
+          defined? Rails ? Rails.root.join('config', filename) : filename
+        end
       end
     end
-  rescue Errno::ENOENT # File not found error
-    {}
   end
 end
-
